@@ -1,2 +1,2 @@
 # Win10
- Windows 10 OS, CMand Intune scripts
+ Windows 10 OS, CM and Intune scripts
