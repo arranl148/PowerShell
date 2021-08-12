@@ -1,0 +1,17 @@
+#AV Exclustions - FSLogix
+
+#Exclude Files and folders 
+%Programfiles%\FSLogix\Apps\frxdrv.sys
+%Programfiles%\FSLogix\Apps\frxdrvvt.sys
+%Programfiles%\FSLogix\Apps\frxccd.sys
+%Temp%\*.vhd
+%Temp%\*.vhdx
+%windir%\Temp\*.vhd
+%windir%\Temp\*.vhdx
+\\storageaccount.file.core.windows.net\share*\*.vhd
+\\storageaccount.file.core.windows.net\share*\*.vhdx
+
+#Exclude Processes
+%Programfiles%\FSLogix\Apps\frxccd.exe
+%Programfiles%\FSLogix\Apps\frxccds.exe
+%Programfiles%\FSLogix\Apps\frxsvc.exe
