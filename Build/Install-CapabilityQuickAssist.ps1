@@ -22,4 +22,4 @@ if( $QuickAssistStatus -ne "Installed") {
             Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "UseWUServer" -Value 1
             Restart-Service "Windows Update" -ErrorAction SilentlyContinue
             }
-    } else {write-host "Quick Assist enabled, nothing to do" -ForegroundColor Green }
+    } else { write-host "Quick Assist enabled, nothing to do" -ForegroundColor Green }
