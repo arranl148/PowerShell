@@ -1,0 +1,54 @@
+
+#Apps + Components
+Get-AppxPackage -allusers | Sort Name | Format-Table Name, PackageFullName
+
+Get-WindowsCapability -Online | where {$_.State -eq "Installed"} | Format-Table Name, State
+
+
+## 
+## Azure
+Get-AzContext -ListAvailable
+Get-AzContext
+
+##
+##Domain Join
+$Credential=Get-Credential
+#Enter domain admin account and pwd
+Reset-ComputerMachinePassword -Credential $Credential
+# Or 
+Test-ComputerSecureChannel -Repair -Credential (Get-Credential)
+
+
+##
+## Find Text
+$FindText = "mid-group-wvd"
+Get-ChildItem -Path D:\repo\customer\Live -Include *.json, *.ps1 -Recurse | Select-String $FindText
+
+
+##
+##Modules
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+$m = Get-Module -Name Microsoft.Graph.Intune -ListAvailable
+if (-not $m)
+{
+    Install-Module NuGet -Force
+    Install-Module Microsoft.Graph.Intune
+}
+Import-Module Microsoft.Graph.Intune -Global
+
+
+##
+## TLS
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+##
+## Unblock-File
+dir * -Recurse | Unblock-File
+
+##Only unblock the blocked
+Get-Item * -Stream "Zone.Identifier" -ErrorAction SilentlyContinue | ForEach {Unblock-File $_.FileName})
+
+From <https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-7> 
+
+dir * -Recurse | Get-Item -Stream "Zone.Identifier" -ErrorAction SilentlyContinue | ForEach {Unblock-File $_.FileName}
