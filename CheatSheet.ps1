@@ -25,6 +25,11 @@ $FindText = "mid-group-wvd"
 Get-ChildItem -Path D:\repo\customer\Live -Include *.json, *.ps1 -Recurse | Select-String $FindText
 
 
+
+##
+## GIT
+git remote remove origin
+
 ##
 ##Modules
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -36,6 +41,14 @@ if (-not $m)
     Install-Module Microsoft.Graph.Intune
 }
 Import-Module Microsoft.Graph.Intune -Global
+
+
+##
+## Scheduled Tasks
+## Each user
+$Principal = New-ScheduledTaskPrincipal -GroupId "INTERACTIVE"
+#.. TaskTrigger -AtLogon) -Principal $Principal -Settings (Ne..
+
 
 
 ##
