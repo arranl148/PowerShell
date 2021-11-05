@@ -33,7 +33,7 @@ $Collections = @(
     @{Name = "CoManagement - Endpoint Protection Workload"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule }
     @{Name = "CoManagement - Resource Acces Policy Workload"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule }
     @{Name = "CoManagement - Client Apps Workload"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule }
-    @{Name = "CoManagement - Office Clict-to-Run apps Workload"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule }
+    @{Name = "CoManagement - Office Click-to-Run apps Workload"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule }
     @{Name = "CoManagement - Windows Update Policies Workload"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule }
 	# Win10
     @{Name = "All Windows 10 Enterprise"; LimitingCollection = $LimitingCollection ; RefreshSchedule = $Schedule ; Query = "select * from SMS_R_System inner join SMS_G_System_OPERATING_SYSTEM on SMS_G_System_OPERATING_SYSTEM.ResourceId = SMS_R_System.ResourceId where SMS_G_System_OPERATING_SYSTEM.Caption = 'Microsoft Windows 10 Enterprise'"}
@@ -91,7 +91,6 @@ $Collections = @(
 	@{Name = "All Windows Server 2012 R2 Devices"; LimitingCollection = $LimitingCollectionServer ; RefreshSchedule = $Schedule ; Query = "select * from SMS_R_System where SMS_R_System.OperatingSystemNameandVersion like '%Windows NT Server 6.3%'"}
 	@{Name = "All Windows Server 2016 Devices"; LimitingCollection = $LimitingCollectionServer ; RefreshSchedule = $Schedule ; Query = "select * from SMS_R_System where SMS_R_System.OperatingSystemNameandVersion like '%Windows NT Server 10.0%'"}
 #	@{Name = "All Windows Server 2019 Devices"; LimitingCollection = $LimitingCollectionServer ; RefreshSchedule = $Schedule ; Query = "select * from SMS_R_System where SMS_R_System.OperatingSystemNameandVersion like '%Windows NT Server 10.0%'"}
-	@{Name = "All Windows Vista Devices"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule ; Query = "select * from SMS_R_System where SMS_R_System.OperatingSystemNameandVersion like '%Workstation 6.0%'"}
 	@{Name = "All Windows XP Devices"; LimitingCollection = $LimitingCollectionDesktop ; RefreshSchedule = $Schedule ; Query = "select * from SMS_R_System where SMS_R_System.OperatingSystemNameandVersion like '%Workstation 5.1%'"}
 #Mobile OS
     @{Name = "Mobile Devices - All Android Devices"; LimitingCollection = $LimitingCollectionAS; RefreshSchedule = $Schedule; Query = "SELECT * FROM SMS_R_System INNER JOIN SMS_G_System_DEVICE_OSINFORMATION ON SMS_G_System_DEVICE_OSINFORMATION.ResourceID = SMS_R_System.ResourceId WHERE SMS_G_System_DEVICE_OSINFORMATION.Platform like 'Android%'"}
@@ -124,6 +123,6 @@ Foreach ($Collection in $Collections) {
 New-CMDeviceCollection -Name $Collection.Name -LimitingCollectionName $Collection.LimitingCollection -RefreshSchedule $Collection.RefreshSchedule -RefreshType 2
 if ($Collection.Query -ne $null) {Add-CMDeviceCollectionQueryMembershipRule -CollectionName $Collection.Name -QueryExpression $Collection.Query -RuleName $Collection.Name}
 #Move the collection to the right folder
-#$FolderPath = $SiteCode.Name + ":\DeviceCollection\" + $CollectionFolder.Name
+#$FolderPath = $SiteCode.Name + ":\DeviceCollection\" + $CollectionFolder.FolderName
 #Move-CMObject -FolderPath $FolderPath -InputObject (Get-CMDeviceCollection -Name $Collection.Name)
 }
