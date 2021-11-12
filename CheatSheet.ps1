@@ -10,6 +10,10 @@ Get-WindowsCapability -Online | where {$_.State -eq "Installed"} | Format-Table 
 Get-AzContext -ListAvailable
 Get-AzContext
 
+##Date
+Get-ChildItem *.jpg | Rename-Item -newname {$_.CreationTime.toString("dd.MM.yyyy.HH.mm") + ".jpg"}
+https://adamtheautomator.com/powershell-rename/
+
 ##
 ##Domain Join
 $Credential=Get-Credential
