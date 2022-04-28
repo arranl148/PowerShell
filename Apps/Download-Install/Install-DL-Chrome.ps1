@@ -9,7 +9,7 @@ $AppName = "Chrome"
 $LogPath = "C:\Windows\TEMP"
 $MasterLogName = Join-Path -Path $LogPath -ChildPath "ImageLog.log"
 # $AppSourceFiles = "\\Server\Share\$AppName"
-$DestinationPath = "D:\Apps\$appname"
+$DestinationPath = "C:\Apps\$appname"
 
 ##Start Logging
 Start-Transcript -Path (Join-Path -Path $LogPath -ChildPath "Install $AppName.log")
