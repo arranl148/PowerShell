@@ -1,3 +1,11 @@
+#
+# Export-CMgrBoundariesToCollections
+#
+# v0.1 arran@deskinthe.cloud / arran.lamb@poweronplatforms.com
+# v0.2 add comments for boundary group from ADSite, correct CSV names to match content 
+#
+
+
 # If the site code has not been defined get it
 if ($SiteCode -eq $null)
 	{
@@ -42,9 +50,19 @@ Set-Location $SitePath
 						New-CMDeviceCollection -Name "ADSite Clients - $ADSiteName" -LimitingCollectionName $LimitingCollection -RefreshSchedule $RefreshSchedule -RefreshType 2
 						Add-CMDeviceCollectionQueryMembershipRule -CollectionName "ADSite Clients - $ADSiteName" -QueryExpression "select * from SMS_R_System where SMS_R_System.ADSiteName = '$ADSiteName'" -RuleName $ADSiteName
 						}
+                <# Untested
+                $BGName = "$ADSiteName Boundary Group"
+                If (Get-CMBoundaryGroup -Name "$BGName") {
+					Write-Host "Boundary Group $BGName already exists, skipping"
+					} 
+					Else { 
+                        New-CMBoundaryGroup -name "$BGName" -DefaultSiteCode $SiteCode
+                        }
+                #>        
             } 
     } 
 
+# Export IP Range Boundaries to CSV file    
     $IPrange = $null 
     $IPrange = @{} 
     $IPSubnet = $null 
@@ -56,9 +74,10 @@ Set-Location $SitePath
                 $IPrange.Add($($Boundary.DisplayName),$($Boundary.Value)) 
  
             } 
-                $IPrange.GetEnumerator() | export-csv "$DestinationPath\BoundariesIPSubnet.csv" -NoTypeInformation -Encoding Unicode 
+                $IPrange.GetEnumerator() | export-csv "$DestinationPath\BoundariesIPRange.csv" -NoTypeInformation -Encoding Unicode 
     } 
 
+# Export Subnet Boundaries to CSV file
     If ($BoundariesRange.count -gt "0") 
     { 
         foreach ($Boundary in $BoundariesRange) 
@@ -66,6 +85,6 @@ Set-Location $SitePath
                 $IPSubnet.Add($($Boundry.DisplayName),$($Boundry.Value)) 
  
             } 
-                $IPSubnet.GetEnumerator() | export-csv "$DestinationPath\BoundariesIPRange.csv" -NoTypeInformation -Encoding Unicode 
+                $IPSubnet.GetEnumerator() | export-csv "$DestinationPath\BoundariesIPSubnet.csv" -NoTypeInformation -Encoding Unicode 
     } 
          
