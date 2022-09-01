@@ -1,0 +1,11 @@
+
+select SMS_R_SYSTEM.ResourceID, SMS_R_SYSTEM.ResourceType, SMS_R_SYSTEM.Name, SMS_R_SYSTEM.SMSUniqueIdentifier, SMS_R_SYSTEM.ResourceDomainORWorkgroup, SMS_R_SYSTEM.Client from SMS_R_System where ResourceID in
+(select ResourceID
+from SMS_FullCollectionMembership
+where CollectionID = “NOV00062”)
+
+select SMS_R_SYSTEM.ResourceID, SMS_R_SYSTEM.ResourceType, SMS_R_SYSTEM.Name, SMS_R_SYSTEM.SMSUniqueIdentifier, SMS_R_SYSTEM.ResourceDomainORWorkgroup, SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.ResourceId in
+(select ResourceID  
+from SMS_FullCollectionMembership  
+JOIN SMS_Collection on SMS_FullCollectionMembership.CollectionID = SMS_Collection.CollectionID
+where SMS_Collection.name LIKE “Lab:%”)
