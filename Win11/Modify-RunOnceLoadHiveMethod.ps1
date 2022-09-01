@@ -1,5 +1,8 @@
 ﻿# Needs errorchecking and tidying
 # Enumerate users with profiles and add runonce key
+#
+# This method was too messy: Get-ChildItem 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\ProfileList' | ForEach-Object { $_.GetValue('ProfileImagePath') }
+
 $Users = (Get-ChildItem C:\Users).Name
 foreach ($user in $users ) {     
     # $User="PowerONSupportADM"
