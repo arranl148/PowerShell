@@ -46,6 +46,9 @@ if (-not $m)
 }
 Import-Module Microsoft.Graph.Intune -Global
 
+## Run a file
+%windir%\SysNative\WindowsPowershell\v1.0\powershell.exe -noprofile -executionpolicy bypass -file .\YourScript.ps1 -All
+
 
 ##
 ## Scheduled Tasks
