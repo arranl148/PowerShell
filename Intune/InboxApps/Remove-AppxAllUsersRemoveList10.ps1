@@ -7,14 +7,12 @@
 
     ##WARNING## 
     Use with caution, restoring deleted provisioning packages is not a simple process.
-
-    
+        
 .NOTES
-
     Idea based on an original script for Windows 10 app removal / Credit to: Nickolaj Andersen @ MSEndpointMgr
     Modifications to original script to Remove/Black/Red list Appx instead of White/Keep/Green list
-    Draws heavily from Remove-Appx-AllUsers-CloudSourceList.ps1 by Author:      Ben Whitmore
-    Contact:     @byteben  2022      Article: msendpointmgr.com/2022/06/27/remove-built-in-windows-11-apps-leveraging-a-cloud-sourced-reference-file/
+    Draws heavily from Remove-Appx-AllUsers-CloudSourceList.ps1 by Author:      Ben Whitmore     Contact:     @byteben  
+         Article: msendpointmgr.com/2022/06/27/remove-built-in-windows-11-apps-leveraging-a-cloud-sourced-reference-file/
 
 ###### Windows 10 Apps###### with VB recommendation
 
@@ -132,10 +130,21 @@ Begin {
     #OS Check
     $OS = (Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber
     Switch -Wildcard ( $OS ) {
-        '21*' {
+        '2*' {
+            $OSVer = "Windows 11"
+            Write-Warning "This script is intended for use on Windows 10 devices. $($OSVer) $OS was detected..."
+            Write-LogEntry -Value "This script is intended for use on Windows 10 devices. $($OSVer) was detected..."
+            Exit 1
+        }
+        '19*' {
             $OSVer = "Windows 10"
-            Write-Warning "This script is intended for use on Windows 11 devices. $($OSVer) was detected..."
-            Write-LogEntry -Value "This script is intended for use on Windows 11 devices. $($OSVer) was detected..."
+            #Write-Host "$($OSVer) $OS was detected. Continuing with removal"
+            Write-LogEntry -Value "$($OSVer) $OS was detected. Continuing with removal"
+        }
+        '18*' {
+            $OSVer = "Legacy Windows 10"
+            Write-Warning "$($OSVer) $OS was detected. App list is not accurate for legacy versions"
+            Write-LogEntry -Value "$($OSVer) $OS was detected. App list is not accurate for legacy versions"
             Exit 1
         }
     }
@@ -155,8 +164,8 @@ Begin {
             "Microsoft.SkypeApp",
             "Microsoft.Wallet",
             "microsoft.windowscommunicationsapps",
-            "Microsoft.WindowsFeedbackHub
-            ",#"Microsoft.WindowsMaps",
+            "Microsoft.WindowsFeedbackHub",
+            #"Microsoft.WindowsMaps",
             "Microsoft.XboxApp",
             "Microsoft.Xbox.TCUI",
             "Microsoft.XboxGameOverlay",
