@@ -1,7 +1,8 @@
 <#
 ************************************************************************************************************************
-Slightly twaeked version of Johan Arwidmark script from Twitter: @jarwidmark Blog   : http://deploymentresearch.com
+Slightly tweaked version of Johan Arwidmark script from Twitter: @jarwidmark Blog   : http://deploymentresearch.com
 ************************************************************************************************************************
+# ToDo - Add download URL
 #>
 
 # Check for elevation
@@ -16,8 +17,8 @@ If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 }
 
 # Change these to match location of downloaded files
-$ADKSetupFile = "D:\Applicationss\Windows ADK\adksetup.exe"
-$WinPEAddonSetupFile = "D:\Applicationss\Windows ADK WinPE Addon\adkwinpesetup.exe"
+$ADKSetupFile = "D:\Apps\Windows ADK\adksetup.exe"
+$WinPEAddonSetupFile = "D:\Apps\Windows ADK WinPE Addon\adkwinpesetup.exe"
 
 # Validation
 if (!(Test-Path -path $ADKSetupFile)) {Write-Warning "Could not find Windows 10 ADK Setup files, aborting...";Break}

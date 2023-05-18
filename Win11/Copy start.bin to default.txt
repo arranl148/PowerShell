@@ -1,1 +1,0 @@
-xcopy "%ScriptRoot%\Windows11\StartMenu\start.bin" "%OSDisk%\Users\Default\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\" /y
