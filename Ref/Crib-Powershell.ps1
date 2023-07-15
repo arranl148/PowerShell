@@ -1,9 +1,18 @@
+Exit 13
 
-#Apps + Components
+## Apps + Components
 Get-AppxPackage -allusers | Sort Name | Format-Table Name, PackageFullName
 
 Get-WindowsCapability -Online | where {$_.State -eq "Installed"} | Format-Table Name, State
 
+## Apps
+## MSIX Bundle Install DISM
+$AppSourcePath = "C:\Apps\YourTestApp]\*"
+$AppSourcePackage = "C:\Apps\YourTestApp\YourTestApp_x64.msixbundle"
+$certName = Get-ChildItem -Path $AppSourcePath -Include *.cer
+
+certutil.exe -addstore TrustedPeople $certName[0].FullName
+DISM.EXE /Online /Add-ProvisionedAppxPackage /PackagePath:$AppSourcePackage /SkipLicense
 
 ## 
 ## Azure
@@ -72,3 +81,15 @@ Get-Item * -Stream "Zone.Identifier" -ErrorAction SilentlyContinue | ForEach {Un
 From <https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-7> 
 
 dir * -Recurse | Get-Item -Stream "Zone.Identifier" -ErrorAction SilentlyContinue | ForEach {Unblock-File $_.FileName}
+
+
+
+@echo off  
+Echo Install Powertoys and Terminal  
+REM Powertoys  
+winget install Microsoft.Powertoys  
+if %ERRORLEVEL% EQU 0 Echo Powertoys installed successfully.  
+REM Terminal  
+winget install Microsoft.WindowsTerminal  
+if %ERRORLEVEL% EQU 0 Echo Terminal installed successfully.   %ERRORLEVEL%
+
