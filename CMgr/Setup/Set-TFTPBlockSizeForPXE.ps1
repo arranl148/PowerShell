@@ -1,5 +1,6 @@
 <# Ref https://learn.microsoft.com/en-gb/mem/configmgr/osd/get-started/prepare-site-system-roles-for-operating-system-deployments
-
+ v0.1 19 May 23 Arran
+ 
 To customize the RamDisk TFTP window size. The default value is 1 (one data block fills the window).
 Also to customize the RamDisk TFTP window size. The default value is 4096.
 
