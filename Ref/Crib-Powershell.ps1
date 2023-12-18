@@ -19,6 +19,10 @@ DISM.EXE /Online /Add-ProvisionedAppxPackage /PackagePath:$AppSourcePackage /Ski
 Get-AzContext -ListAvailable
 Get-AzContext
 
+## BitLocker -get the recovery key. https://devblogs.microsoft.com/scripting/powertip-use-powershell-to-get-bitlocker-recovery-key/
+(Get-BitLockerVolume -MountPoint C).KeyProtector
+
+
 ##Date
 Get-ChildItem *.jpg | Rename-Item -newname {$_.CreationTime.toString("dd.MM.yyyy.HH.mm") + ".jpg"}
 https://adamtheautomator.com/powershell-rename/
@@ -55,6 +59,7 @@ if (-not $m)
 }
 Import-Module Microsoft.Graph.Intune -Global
 
+
 ## Run a file
 %windir%\SysNative\WindowsPowershell\v1.0\powershell.exe -noprofile -executionpolicy bypass -file .\YourScript.ps1 -All
 
@@ -66,8 +71,23 @@ $Principal = New-ScheduledTaskPrincipal -GroupId "INTERACTIVE"
 #.. TaskTrigger -AtLogon) -Principal $Principal -Settings (Ne..
 
 
+###########
+## Sort-Object
+# Define an array of strings
+$strings = "a", "b", "c" 
+# Sort the strings in descending order
+$sortedStrings = $strings | Sort-Object -Descending
+# Display the sorted strings
+Write-Output $sortedStrings
 
-##
+$numbers = 4, 2, 3, 3, 1, 5, 2
+$sortedNumbers = $numbers | Sort-Object -Unique -Descending
+Write-Output $sortedNumbers
+
+$sortedNumbers = $numbers | Sort-Object
+Write-Output $sortedNumbers
+
+#################
 ## TLS
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 

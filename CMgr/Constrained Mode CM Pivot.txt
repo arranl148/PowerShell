@@ -1,0 +1,13 @@
+CMPivot not functioning on Site Server:
+ 
+On the test VM:
+ 
+1. Ran CMPivot from the Site Server - failed to process the query
+2. Installed CMPivot on the client as an individual application - ran the query OK (this just queries WMI)
+3. Changed PowerShell to run in Full Language mode as opposed to Constrained Language (changed the Registry key from 4 to 8 - HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\__PSLockdownPolicy)
+4. Ran CMPivot from the Site Server - ran the query OK.
+ 
+This proves that CMPivot does not work from the Site Server due to PowerShell Constrained Language mode. When run from the Site server, it uses a script to gather the data which is being blocked. 
+
+
+ 
