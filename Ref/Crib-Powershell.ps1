@@ -103,6 +103,39 @@ From <https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.ut
 dir * -Recurse | Get-Item -Stream "Zone.Identifier" -ErrorAction SilentlyContinue | ForEach {Unblock-File $_.FileName}
 
 
+##
+## App Check WMI
+$partialName = "ODBC"  # Replace with the partial name of the software you're looking for
+
+# Check if the software is installed
+$installedSoftware = Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE Name LIKE '%$partialName%'" -ErrorAction SilentlyContinue
+
+if ($installedSoftware) {
+    Write-Host "Software $partialName is installed."
+} else {
+    Write-Host "Software $partialName is not installed."
+}
+
+##
+## 64 bit only
+$partialName = "yourPartialName"  # Replace with the partial name of the software you're looking for
+
+# Define registry paths for 32-bit and 64-bit systems
+$registryPath32 = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+$registryPath64 = "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+
+# Check if the software is installed in 32-bit registry
+$installedSoftware32 = Get-ItemProperty -Path $registryPath32 | Where-Object { $_.DisplayName -like "*$partialName*" }
+
+# Check if the software is installed in 64-bit registry
+$installedSoftware64 = Get-ItemProperty -Path $registryPath64 | Where-Object { $_.DisplayName -like "*$partialName*" }
+
+if ($installedSoftware32 -or $installedSoftware64) {
+    Write-Host "Software $partialName is installed."
+} else {
+    Write-Host "Software $partialName is not installed."
+}
+
 
 @echo off  
 Echo Install Powertoys and Terminal  
