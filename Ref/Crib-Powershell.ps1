@@ -1,5 +1,24 @@
 Exit 13
 
+#Comment-help in vscode gives you
+<#
+.SYNOPSIS
+    A short one-line action-based description, e.g. 'Tests if a function is valid'
+.DESCRIPTION
+    A longer description of the function, its purpose, common use cases, etc.
+.NOTES
+    Information or caveats about the function e.g. 'This function is not supported in Linux'
+.LINK
+    Specify a URI to a help page, this will show when Get-Help -Online is used.
+.EXAMPLE
+    Test-MyTestFunction -Verbose
+    Explanation of the function or its result. You can include multiple examples with additional .EXAMPLE lines
+#>
+
+
+#region
+#endregion
+
 ## Apps + Components
 Get-AppxPackage -allusers | Sort Name | Format-Table Name, PackageFullName
 
@@ -25,10 +44,10 @@ Get-AzContext
 
 ##Date
 Get-ChildItem *.jpg | Rename-Item -newname {$_.CreationTime.toString("dd.MM.yyyy.HH.mm") + ".jpg"}
-https://adamtheautomator.com/powershell-rename/
+#https://adamtheautomator.com/powershell-rename/
 
 ##
-##Domain Join
+## Domain Join
 $Credential=Get-Credential
 #Enter domain admin account and pwd
 Reset-ComputerMachinePassword -Credential $Credential
@@ -137,6 +156,7 @@ if ($installedSoftware32 -or $installedSoftware64) {
 }
 
 
+<#
 @echo off  
 Echo Install Powertoys and Terminal  
 REM Powertoys  
@@ -145,4 +165,5 @@ if %ERRORLEVEL% EQU 0 Echo Powertoys installed successfully.
 REM Terminal  
 winget install Microsoft.WindowsTerminal  
 if %ERRORLEVEL% EQU 0 Echo Terminal installed successfully.   %ERRORLEVEL%
+#>
 
