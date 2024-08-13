@@ -24,6 +24,21 @@ Get-AppxPackage -allusers | Sort Name | Format-Table Name, PackageFullName
 
 Get-WindowsCapability -Online | where {$_.State -eq "Installed"} | Format-Table Name, State
 
+## Appx
+#Switch to 64-bit powershell if currently 32-bit powershell
+if ($pshome -like "*syswow64*") {& (join-path ($pshome -replace "syswow64", "sysnative")\powershell.exe) -file $myinvocation.mycommand.Definition @args; exit}
+
+#Get current script folder path
+$scriptpath = Split-Path $MyInvocation.MyCommand.Path -Parent
+
+#Import module for working with AppX through PowerShell.
+Import-Module appx
+
+#Install .appx or .appxbundle
+Add-AppxProvisionedPackage -Online -PackagePath "${scriptpath}\Microsoft.VCLibs.140.00_14.0.30704.0_x64__8wekyb3d8bbwe.appx" -SkipLicens
+
+
+
 ## Apps
 ## MSIX Bundle Install DISM
 $AppSourcePath = "C:\Apps\YourTestApp]\*"
@@ -55,6 +70,12 @@ Reset-ComputerMachinePassword -Credential $Credential
 Test-ComputerSecureChannel -Repair -Credential (Get-Credential)
 
 
+## 
+if ((Test-Path C:\MyFile.log) -and (Get-Item C:\MyFile.log).Length -gt 0KB) {
+    Write-Output "Log file exists and is not empty."
+} 
+
+
 ##
 ## Find Text
 $FindText = "mid-group-wvd"
@@ -77,6 +98,22 @@ if (-not $m)
     Install-Module Microsoft.Graph.Intune
 }
 Import-Module Microsoft.Graph.Intune -Global
+
+
+## Registry 
+https://learn.microsoft.com/en-gb/windows/deployment/windows-autopatch/references/windows-autopatch-conflicting-configurations
+# Detect Property
+if((Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate).PSObject.Properties.Name -contains 'DoNotConnectToWindowsUpdateInternetLocations') {
+    Exit 1
+} else {
+    exit 0
+}
+
+#Remove Property
+if((Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate).PSObject.Properties.Name -contains 'DoNotConnectToWindowsUpdateInternetLocations') {
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "DoNotConnectToWindowsUpdateInternetLocations"
+}
+
 
 
 ## Run a file

@@ -12,10 +12,9 @@ if ( -not ($artifactsLocationSasToken.StartsWith("?"))) {
         $artifactsLocationSasToken = "?$artifactsLocationSasToken"
 
 
-
-
-#######
-if ((Test-Path C:\MyFile.log) -and (Get-Item C:\MyFile.log).Length -gt 0KB) {
-    Write-Output "Log file exists and is not empty."
-} 
+############# Actual
+#Checks if the SAS token starts with a ? and if it doesn't, add one    
+    if ($ArtifactsLocationSasToken.Substring(0, 1) -ne '?') {
+        $ArtifactsLocationSasToken = "?$ArtifactsLocationSasToken"
+    }
 
