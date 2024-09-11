@@ -1,0 +1,264 @@
+# Recreate the Hardware Inventory WMI object
+Get-WmiObject -Namespace root\ccm\invagt -Class inventoryactionstatus | Where-Object {$_.inventoryactionid -eq "{00000000-0000-0000-0000-000000000001}" | Remove-WmiObject
+Invoke-WmiMethod -Namespace root\ccm -Class SMS_CLIENT -Name TriggerSchedule "{00000000-0000-0000-0000-000000000001}" 
+
+
+# Remove Old User Profiles
+Get-WMIObject -class Win32_UserProfile | Where {(!$_.Special) -and ($_.ConvertToDateTime($_.LastUseTime) -lt (Get-Date).AddDays(-2))} | Remove-WmiObject 
+
+
+# Manually Run a Compliance Baseline
+This script is used to manually run a compliance baseline against a device or collection of devices. A compliance baseline is scheduled to run at a defined time therefore this script can be used to run the baseline outside of that time period. Within the script, the name of the baseline to be run needs updating.
+
+#For using in "Run Script" Node.  Has Exit At end... will exit your ISE if you run in ISE. :-)
+#Adopted from another script, so it has some Write-Hosts that don't really make sense in a CI, deal with it.
+
+[CmdletBinding()]
+    Param (
+		    [Parameter(Mandatory=$true)]
+		    $BaselineName="Feature Update - Scripts and Files Are Present"
+	    )
+
+
+#Invoke Machine Policy
+Invoke-WMIMethod -Namespace root\ccm -Class SMS_CLIENT -Name TriggerSchedule "{00000000-0000-0000-0000-000000000021}" | Out-Null
+Invoke-WMIMethod -Namespace root\ccm -Class SMS_CLIENT -Name TriggerSchedule "{00000000-0000-0000-0000-000000000022}" | Out-Null
+Start-Sleep -Seconds 120 
+
+#Get Baseline Info
+$DCM = [WMIClass] "ROOT\ccm\dcm:SMS_DesiredConfiguration"
+$WaaSBaseline = Get-WmiObject -Namespace root\ccm\dcm -QUERY "SELECT * FROM SMS_DesiredConfiguration WHERE DisplayName LIKE ""$BaselineName""" -ErrorAction SilentlyContinue
+
+   
+#Display Baseline Info
+#Trigger Baseline Status:
+    
+if ($WaaSBaseline -ne $null)
+    {
+    $DCM.TriggerEvaluation($WaaSBaseline.Name, $WaaSBaseline.Version) | Out-Null
+    Start-Sleep -Seconds 120
+    $WaaSBaseline = Get-WmiObject -Namespace root\ccm\dcm -QUERY "SELECT * FROM SMS_DesiredConfiguration WHERE DisplayName LIKE ""$BaselineName"""
+    $LastEvalTime = $WaaSBaseline.LastEvalTime
+    if ($LastEvalTime -ne $Null -and $LastEvalTime -notlike "000*" )
+        {
+        $LastEvalString = $LastEvalTime.Substring(0,14)
+        #$LastEvalString = [MATH]::Round($LastEvalString)
+        #$LastEvalString = $LastEvalString.ToString()
+        $LastEvalString = [DateTime]::ParseExact($LastEvalString,"yyyyMMddHHmmss",$null)
+        $EvalDifference = New-TimeSpan -End ([System.DateTime]::UtcNow) -Start $LastEvalString
+        $EvalDifferenceHours = $EvalDifference.TotalHours    
+        $UserReport = $DCM.GetUserReport($WaaSBaseline.Name,$WaaSBaseline.Version,$null,0)
+        [XML]$Details = $UserReport.ComplianceDetails
+        $WaaSNonCompliant = $Details.ConfigurationItemReport.ReferencedConfigurationItems.ConfigurationItemReport | Where-Object {$_.CIComplianceState -eq "NonCompliant"}
+            
+        if ($Details.ConfigurationItemReport.CIComplianceState -eq "Compliant")
+            {
+            $BaselineStatus = "Compliant"
+            Write-OutPut "Baseline Status: $BaselineStatus"
+            }
+        Else
+            {
+            Invoke-WMIMethod -Namespace root\ccm -Class SMS_CLIENT -Name TriggerSchedule "{00000000-0000-0000-0000-000000000021}" | Out-Null
+            Invoke-WMIMethod -Namespace root\ccm -Class SMS_CLIENT -Name TriggerSchedule "{00000000-0000-0000-0000-000000000022}" | Out-Null
+            Start-Sleep -Seconds 180 
+            $DCM.TriggerEvaluation($WaaSBaseline.Name, $WaaSBaseline.Version) | Out-Null
+            Start-Sleep -Seconds 300 
+            $WaaSBaseline = Get-WmiObject -Namespace root\ccm\dcm -QUERY "SELECT * FROM SMS_DesiredConfiguration WHERE DisplayName LIKE ""$BaselineName"""
+            $WaaSNonCompliant = $Details.ConfigurationItemReport.ReferencedConfigurationItems.ConfigurationItemReport | Where-Object {$_.CIComplianceState -eq "NonCompliant"}
+            $BaselineStatus = "NonCompliant"
+            $UserReport = $DCM.GetUserReport($WaaSBaseline.Name,$WaaSBaseline.Version,$null,0)
+            [XML]$Details = $UserReport.ComplianceDetails
+            if ($Details.ConfigurationItemReport.CIComplianceState -eq "Compliant")
+                {
+                $BaselineStatus = "Compliant"
+                Write-OutPut "Baseline Status: $BaselineStatus"
+                }
+            Else
+                {
+                Write-OutPut "Baseline Status:: $BaselineStatus"
+                $NonCompliantNames = ForEach ($PA_Rule in $WaaSNonCompliant)
+                {($PA_Rule).CIProperties.Name.'#text'}
+                ForEach ($PA_Rule in $WaaSNonCompliant)
+                    {
+                    Write-OutPut "Rule: $($PA_Rule.CIProperties.Name.'#text')"
+                    }
+                #Write-OutPut"NonCompliant Items: $WaaSNonCompliant" -ForegroundColor Red
+                $DCM.TriggerEvaluation($WaaSBaseline.Name, $WaaSBaseline.Version) | Out-Null
+                }
+            }
+        }
+    Else
+        {
+        $BaselineStatus = "No Status"
+        Write-OutPut "Baseline Status: $BaselineStatus"
+        $DCM.TriggerEvaluation($WaaSBaseline.Name, $WaaSBaseline.Version) | Out-Null
+        }
+    }
+Else {Write-Output "No baseline named $BaselineName"} 
+
+
+#Invoke Hardware Inventory Delta
+Invoke-WMIMethod -Namespace root\ccm -Class SMS_CLIENT -Name TriggerSchedule "{00000000-0000-0000-0000-000000000001}" | Out-Null 
+
+TABLE 58 - MANUALLY RUN A COMPLIANCE BASELINE SCRIPT
+5.4	Remove Blocking Drivers
+As part of the Windows Compat Scan, there may be certain drivers that are perceived as Blocking drivers. This may prevent the upgrade from continuing. This script will analyse the output of the CompatScan.xml file and remove any Blocking drivers from the machine. 
+
+Param (
+    $FUPath = 'C:\~FeatureUpdateTemp',
+    [switch]$LogOnly    
+)
+
+function Start-Log {
+    Param (
+        $LogName
+    )
+    If (!($LogName)) {
+        $Global:LogName = $MyInvocation.MyCommand.Name
+    }
+    If (!($LogName)) {
+        $Global:LogName = "ScriptLog-$(Get-Date -Format FileDate)"
+    }
+    try {
+        If (Test-Path $env:SystemRoot\CCM) {
+            $LogPath = "$env:SystemRoot\CCM\Logs" # places the logfile in with all the other ConfigMgr logs
+        }
+        Else {
+            If (!(Test-Path $env:SystemDrive\ProgramData\PowerON\Logs)) {
+                New-Item $env:SystemDrive\ProgramData\PowerON\Logs -ItemType Directory -Force | Out-Null
+            }
+            $LogPath = "$env:SystemDrive\ProgramData\PowerON\Logs" # places the logfile in the ProgramData\PowerON\Logs
+        }
+        ## Set the global variable to be used as the FilePath for all subsequent Write-Log calls in this session
+        $global:ScriptLogFilePath = "$LogPath\$LogName`.log"
+        Write-Verbose "Log set to: $ScriptLogFilePath"
+        If (!(Test-Path $ScriptLogFilePath)) {
+            Write-Verbose "Creating new log file."
+            New-Item -Path "$ScriptLogFilePath" -ItemType File | Out-Null
+        }
+    }
+    catch {
+        Write-Error $_.Exception.Message
+    }
+}
+function Write-Log {
+    Param (
+        [Parameter()]
+        [string]$Source,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Message,
+        [Parameter()]
+        [ValidateSet(1, 2, 3, 'Information', 'Warning', 'Error')]
+        [string]$LogLevel = 3
+    )
+    If (!($Source)) {
+        $Source = $MyInvocation.MyCommand.Name
+    }
+    If ($MyInvocation.ScriptLineNumber) {
+        $Source = "$Source`:$($MyInvocation.ScriptLineNumber)"
+    }
+    switch ($LogLevel) {
+        'Information' { [int]$LogLevel = 1 }
+        'Warning' { [int]$LogLevel = 2 }
+        'Error' { [int]$LogLevel = 3 }
+        Default { [int]$LogLevel = $LogLevel }
+    }
+    Write-Verbose $Message
+    $TimeGenerated = "$(Get-Date -Format HH:mm:ss).$((Get-Date).Millisecond)+000"
+    $Line = '<![LOG[{0}]LOG]!><time="{1}" date="{2}" component="{3}" context="" type="{4}" thread="" file="">'
+    $LineFormat = $Message, $TimeGenerated, (Get-Date -Format MM-dd-yyyy), $Source, $LogLevel
+    $Line = $Line -f $LineFormat
+    Try {
+        Add-Content -Value $Line -Path $ScriptLogFilePath -Encoding 'utf8'
+    }
+    catch {
+        Write-Verbose "Warning: Unable to append to log file - Retrying"
+        Try {
+            Add-Content -Value $Line -Path $ScriptLogFilePath -Encoding 'utf8'
+        }
+        catch {
+            Write-Verbose "Error: Failed to append to log file"
+        }
+    }
+}
+Start-Log -LogName "Remove-BlockingDrivers"
+Write-Log -Message "Checking for Log zip file" -LogLevel 1
+If (Test-Path $FUPath\Logs\Logs.zip) {
+    Write-Log -Message "Log zip file Exists" -LogLevel 1
+    If (Test-Path $FUPath\Logs\Extract) {
+        Write-Log -Message "Extracted directory exists, removing" -LogLevel 2
+        Remove-Item -Path $FUPath\Logs\Extract -Recurse -Force
+    }
+    
+    Try {
+        Write-Log -Message "Extracting Log zip file" -LogLevel 1
+        Expand-Archive $FUPath\Logs\Logs.zip -DestinationPath $FUPath\Logs\Extract
+        Write-Log -Message "Getting ScanResults details" -LogLevel 1
+        [XML]$XML = Get-Content $FUPath\Logs\Extract\ScanResult.xml
+        $XML.CompatReport.DriverPackages.DriverPackage | Where-Object BlockMigration -eq $True | ForEach-Object {
+            Write-Log -Message "Attempting to remove driver in $($_.inf)" -LogLevel 1
+            try {
+                If (!($LogOnly)) {
+                    &pnputil -f -d $_.inf
+                }
+            }
+            catch {
+                Write-Log -Message "Failed to remove driver" -LogLevel 3
+            }
+        }
+    }
+    catch {
+        Write-Log -Message "Failed to run process" -LogLevel 3
+    }
+    If (Test-Path $FUPath\Logs\Extract) {
+        try {
+            Write-Log -Message "Attempting Cleanup" -LogLevel 2
+            Remove-Item -Path $FUPath\Logs\Extract -Recurse -Force
+            Write-Log -Message "Process finished" -LogLevel 1
+        }
+        catch {
+            Write-Log -Message "Failed to remove extracted directory" -LogLevel 3
+        }
+    }
+} 
+
+TABLE 59 - REMOVE BLOCKING DRIVERS SCRIPT
+5.5	Remove Printing XPS and Print to PDF Features
+With some earlier versions of Windows, the Print XPS and Print to PDF features can block an upgrade to a later version of Windows. This script will remove these two features on the device, allowing the upgrade to continue. 
+
+# Set Temp & Log Location
+$TempLocation = Join-Path $env:AllUsersProfile "Drivers"
+[string]$LogDirectory = Join-Path $TempLocation "\Logs"
+$FileName = "Remove-XPSorPrintToPDF.log"
+$LogFilePath = Join-Path -Path $LogDirectory -ChildPath $FileName
+#Start Log
+Start-Transcript -Path $LogFilePath 
+
+# PrintToPDFServices
+try {
+    Disable-WindowsOptionalFeature -Online -FeatureName Printing-PrintToPDFServices-Features
+	Write-host "Printing-PrintToPDFServices-Features removed"
+	}
+	catch {
+		Write-host "Failed to remove Printing-PrintToPDFServices $($_.Exception.Message)"
+		}
+# Print-XPS
+try {
+    Disable-WindowsOptionalFeature -Online -FeatureName Printing-XPSServices-Features
+	Write-host "Printing-XPSServices-Features removed"
+	}
+	catch {
+		Write-host "Failed to remove Printing-XPSServices $($_.Exception.Message)"
+		}
+Get-WindowsOptionalFeature -Online -FeatureName Printing-PrintToPDFServices-Features
+Get-WindowsOptionalFeature -Online -FeatureName Printing-XPSServices-Features
+Stop-Transcript 
+
+
+## Import Device in to collection from text file (simple)
+Get-Content "<path to text file>" | foreach {Add-CMDeviceCollectionDirectMembershipRule 
+-CollectionID "<CollectionID>" -ResourceID (Get-CMDevice -Name $_).ResourceID} 
+
+
+
