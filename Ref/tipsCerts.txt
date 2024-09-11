@@ -1,0 +1,30 @@
+## https://adamtheautomator.com/certutil/
+## Get publisher of certificate and add to trusted Publisher (machine) (untested)
+$CertFile = get-item <path to .cer file>
+
+$CertStore = Get-Item "cert:\LocalMachine\TrustedPublisher"
+$CertStore.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+
+$Cert = (Get-AuthenticodeSignature $CertFile.FullName).SignerCertificate
+
+Write-Host ( "Added {0}, {1} from {2}" -f $Cert.Thumbprint, $Cert.Subject, $CertFile.FullName )
+
+$CertStore.Add($Cert)
+$CertStore.Close()
+
+## Get publisher of certificate and add to trusted Publisher (machine) (untested)
+## CertMgr /add CertificateFileName.cer /s /r localMachine trustedpublisher
+
+
+## Add PFX to to trusted Publisher (machine) (untested)
+$pfx = new-object System.Security.Cryptography.X509Certificates.X509Certificate2 
+$certPath = read-host "Certificate Path"
+$pfxPass = read-host "Password" -assecurestring
+$pfx.import($certPath,$pfxPass,"Exportable,PersistKeySet") 
+$store = new-object System.Security.Cryptography.X509Certificates.X509Store(
+    [System.Security.Cryptography.X509Certificates.StoreName]::TrustedPublisher,
+    "localmachine"
+)
+$store.open("MaxAllowed") 
+$store.add($pfx) 
+$store.close()

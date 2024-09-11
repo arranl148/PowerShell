@@ -1,0 +1,2 @@
+winget install Microsoft.VisualStudioCode
+winget install Notepad++

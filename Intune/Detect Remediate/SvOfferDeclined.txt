@@ -1,0 +1,19 @@
+#Works in Constrained mode
+$RegistryKeyPath = "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
+$ValueName = "SvOfferDeclined"
+ 
+
+# Check if the registry key value exists
+if (Test-Path -Path $RegistryKeyPath) {
+    Try {
+    $RegistryKey = Get-ItemProperty -Path $RegistryKeyPath -Name $ValueName -ErrorAction SilentlyContinue
+    }
+    catch {
+    #No Key
+    }
+    if ($null -ne $RegistryKey) {
+        Write-Output "Exists"
+    } else {
+        Write-Output "Not Exists"
+    }
+}

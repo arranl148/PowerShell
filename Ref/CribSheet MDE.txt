@@ -1,0 +1,15 @@
+#If you're deploying MDE via Defender for Servers, you might want to run this and look for failure states
+
+(Get-AzResource -ResourceType Microsoft.Compute/virtualMachines | Get-AzVM | ? {$_.extensions.Name -match 'MDE.' -and $_.extensions.ProvisioningState -ne 'Succeeded'}).Id
+
+#For Arc-enabled servers, best I came up with:
+
+Get-AzConnectedMachine | % { Get-AzConnectedMachineExtension -SubscriptionId $_.Id.Split('/')[2] -ResourceGroupName $_.ResourceGroupName -MachineName $_.Name | ? {$_.Name -match 'MDE.' -and $_.ProvisioningState -ne 'Succeeded'}}
+
+##https://github.com/Azure/Microsoft-Defender-for-Cloud/tree/main/Workbooks/Defender%20for%20Endpoint%20Deployment%20Status
+
+
+#######
+#Is schema extended for bitLocker?
+Import-module ActiveDirectory 
+Get-ADObject -SearchBase ((GET-ADRootDSE).SchemaNamingContext) -Filter {Name -like 'ms-FVE-*'}
