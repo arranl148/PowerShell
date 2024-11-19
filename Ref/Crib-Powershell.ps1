@@ -19,6 +19,17 @@ Exit 13
 #region
 #endregion
 
+#########################
+# Modules
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+$m = Get-Module -Name Microsoft.Graph.Intune -ListAvailable
+if (-not $m)
+{
+    Install-Module NuGet -Force
+    Install-Module Microsoft.Graph.Intune
+}
+Import-Module Microsoft.Graph.Intune -Global
+
 ## Apps + Components
 Get-AppxPackage -allusers | Sort Name | Format-Table Name, PackageFullName
 

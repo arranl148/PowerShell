@@ -64,3 +64,22 @@ foreach ($ADR in $ADRList) {
         Write-Host ""
     }
 }
+
+###########
+# Intune
+
+$m = Get-Module -Name Microsoft.Graph.Intune -ListAvailable
+if (-not $m)
+{
+    Install-Module NuGet -Force
+    Install-Module Microsoft.Graph.Intune
+}
+Import-Module Microsoft.Graph.Intune -Global
+
+$serialNumber = "PF16DNHL"
+    $device = Get-AutoPilotDevice -serial $serialNumber
+    $device.serialNumber
+
+ $IntuneDevice = Get-IntuneManagedDevice | Where-Object serialNumber -eq $serialNumber 
+ $IntuneDevice
+ 
